@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+      integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+      integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+      crossorigin=""
+    ></script>
+    <style>
+      #issMap {
+        height: 180px;
+      }
+    </style>
+    <title>Fetch JSON from API and map lat lon</title>
+  </head>
+
+  <body>
+    <h1>WHERE IS THE ISS?</h1>
+
+    <p class="lon">Lon: <span></span></p>
+    <p class="lat">Lat: <span></span></p>
+
+    <div id="issMap"></div>
+
+    <script>
+      //Making a Map
+      var map = L.map("issMap").setView([0, 0], 2);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      // Making a Marker with a custom Icon
+      let myIcon = L.icon({
+        iconUrl: "iss.png",
+        iconSize: [30, 50],
+        iconAnchor: [25, 12],
+        popupAnchor: [-3, -76]
+      });
+
+      const marker = L.marker([41.18, 28.74], {icon: myIcon}).addTo(map);
+
+      getISS();
+      let firstTime = true;
+      async function getISS() {
+        const resGeo = await fetch("https://api.wheretheiss.at/v1/satellites/25544");        
+        const geoData = await resGeo.json();
+        const {latitude, longitude} = geoData;
+        
+        marker.setLatLng([geoData.latitude,geoData.longitude])
+
+        if(firstTime) {
+          map.setView([latitude, longitude], 2)
+          firstTime = false
+        }
+
+        document.querySelector(".lon span").textContent = `${longitude}`;
+        document.querySelector(".lat span").textContent = `${latitude}`;
+      }
+
+      setInterval(getISS, 1000);
+    </script>
+  </body>
+</html>
